@@ -1,0 +1,97 @@
+module ura {
+  namespace "http://spritelink.net/ns/ura";
+  prefix ura;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-common {
+    prefix tailf;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  augment /ncs:services {
+
+    container ura {
+      description "Universal Resource Allocator";
+
+      list integer {
+        description "Assign integer (uint64)";
+
+        key name;
+        leaf name {
+          tailf:info "Unique id of integer range";
+          tailf:cli-allow-range;
+          type string;
+        }
+
+        uses ncs:service-data;
+        ncs:servicepoint ura-servicepoint;
+
+        leaf min-value {
+          description "Minimum value";
+          type uint64;
+          default 0;
+        }
+
+        leaf max-value {
+          description "Maximum value";
+          type uint64;
+          default 4294967296;
+          //default 18446744073709551615; // Java can't handle this big numbers right now
+        }
+
+        leaf allocation-order {
+          description "Specify order of allocation";
+          default "ascending";
+          type enumeration {
+            enum "ascending" {
+              description "Allocate integers in ascending order";
+            }
+            enum "descending" {
+              description "Allocate integers in descending order";
+            }
+          }
+        }
+
+        leaf allocation-method {
+          default "max";
+          type enumeration {
+            enum "max" {
+              description "Look for currentcurrent  max value and try to allocate the subsequent value";
+            }
+          }
+        }
+
+        list request {
+          key name;
+
+          leaf name {
+            tailf:info "Unique id of request for integer";
+            tailf:cli-allow-range;
+            type string;
+          }
+
+          leaf integer {
+            type uint64;
+            config false;
+            tailf:cdb-oper {
+              tailf:persistent true;
+            }
+          }
+
+          leaf redeploy-service {
+            description "Redeploy service after succesful allocation";
+            type string;
+//            type leafref {
+//              path "/ncs:services/name";
+//            }
+          }
+        }
+
+      }
+    }
+  }
+}
