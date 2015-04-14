@@ -74,6 +74,8 @@ module ura {
             type string;
           }
 
+          unique integer;
+
           leaf integer {
             type uint64;
             config false;
