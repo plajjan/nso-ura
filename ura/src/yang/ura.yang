@@ -57,10 +57,17 @@ module ura {
         }
 
         leaf allocation-method {
+          description "Control the method used to find the next free integer";
+
           default "max";
           type enumeration {
             enum "max" {
-              description "Look for currentcurrent  max value and try to allocate the subsequent value";
+              value 0;
+              description "Allocate current maximum value + 1";
+            }
+            enum "first" {
+              value 1;
+              description "Allocate first available number";
             }
           }
         }
