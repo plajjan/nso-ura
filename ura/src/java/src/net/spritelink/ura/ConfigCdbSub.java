@@ -143,7 +143,9 @@ public class ConfigCdbSub implements ApplicationComponent {
 
 						long newVal = minVal;
 						if (allocMethod.getOrdinalValue() == 0) {
-							newVal = Collections.max(numbers) + 1;
+							if (numbers.size() > 0) {
+								newVal = Collections.max(numbers) + 1;
+							}
 						} else if (allocMethod.getOrdinalValue() == 1) {
 
 							Collections.sort(numbers);
