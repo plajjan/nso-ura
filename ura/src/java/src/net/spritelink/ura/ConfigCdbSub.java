@@ -127,6 +127,9 @@ public class ConfigCdbSub implements ApplicationComponent {
 						LOGGER.debug("max-value: " + maxVal);
 
 						List<Long> numbers = new ArrayList<Long>();
+						// fetch all the current values from CDB
+						// for large number of existing values, this will be rather slow and memory efficient
+						// for the "max" method we could perhaps do a xpath max() to fetch the max value instead
 						for (NavuContainer poolReq: ncsRoot.container("services")
 												.container("ura", "ura").list("integer").
 												elem(String.valueOf(req.pool_key).replaceAll("[{}]", "")).
