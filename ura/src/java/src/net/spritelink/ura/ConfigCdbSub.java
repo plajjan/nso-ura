@@ -132,22 +132,28 @@ public class ConfigCdbSub implements ApplicationComponent {
 							try {
 								rv = maapi.getElem(th, "/ncs:services/ura:ura/integer" + req.pool_key + "/request{" + poolReq.leaf("name").valueAsString() + "}/integer");
 								numbers.add(Long.parseLong(String.valueOf(rv)));
-								LOGGER.info("req-val " + poolReq.leaf("name").valueAsString() + ": " + rv);
 							} catch (Exception e) {
 							}
 						}
 
-						Collections.sort(numbers);
+						long newVal = minVal;
+						if (allocMethod.getOrdinalValue() == 0) {
+							newVal = Collections.max(numbers) + 1;
+						} else if (allocMethod.getOrdinalValue() == 1) {
 
-						// TODO: we don't respect min-val or max-val
-						// TODO: implement different allocation-methods
-						// find next free number
-						long newVal = numbers.size();
-						for(int i=0; i < numbers.size(); i++) {
-							if(numbers.get(i) != (long)i) {
-								newVal = i;
-								break;
+							Collections.sort(numbers);
+
+							// TODO: we don't respect min-val or max-val
+							// TODO: implement different allocation-methods
+							// find next free number
+							newVal = numbers.size();
+							for(int i=0; i < numbers.size(); i++) {
+								if(numbers.get(i) != (long)i) {
+									newVal = i;
+									break;
+								}
 							}
+
 						}
 
                         // Write the result and redeploy
