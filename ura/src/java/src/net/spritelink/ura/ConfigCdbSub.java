@@ -117,8 +117,8 @@ public class ConfigCdbSub implements ApplicationComponent {
 
 						LOGGER.info("Trying to allocate an integer for: " + req.request_key);
 						ConfEnumeration allocMethod = (ConfEnumeration)maapi.getElem(th, "/ncs:services/ura:ura/integer" + req.pool_key + "/allocation-method");
-						// FUU Java - No unsigned longs and how come I can't cast to Bi
-						// FUUU MAAPI, there's got to be a better way than casting via string
+						// TODO: FUU Java - No unsigned longs and how come I can't cast to Bi
+						// TODO: FUUU MAAPI, there's got to be a better way than casting via string
 						long minVal = Long.parseLong(String.valueOf(maapi.getElem(th, "/ncs:services/ura:ura/integer" + req.pool_key + "/min-value")));
 						long maxVal = Long.parseLong(String.valueOf(maapi.getElem(th, "/ncs:services/ura:ura/integer" + req.pool_key + "/max-value")));
 
@@ -135,6 +135,8 @@ public class ConfigCdbSub implements ApplicationComponent {
 							} catch (Exception e) {
 							}
 						}
+						// TODO: we don't respect min-val or max-val
+						// TODO: implement different allocation-methods
 
 						long newVal = minVal;
 						if (allocMethod.getOrdinalValue() == 0) {
@@ -143,8 +145,6 @@ public class ConfigCdbSub implements ApplicationComponent {
 
 							Collections.sort(numbers);
 
-							// TODO: we don't respect min-val or max-val
-							// TODO: implement different allocation-methods
 							// find next free number
 							newVal = numbers.size();
 							for(int i=0; i < numbers.size(); i++) {
@@ -167,17 +167,16 @@ public class ConfigCdbSub implements ApplicationComponent {
                         redeploy(maapi, redeployPath + "/re-deploy");
                     }
 
-                    else if (req.op == Operation.DEALLOCATE) {
-                        //Deallocate the pseudowire ID
+                    else if (req.op == Operation.DEALLOCATE &&
+                            (req.t == Type.Integer)) {
+                        //Deallocate the integer
 
-//                        try {
-//                            ConfValue v = wsess.getElem(req.path + "/l2vpn:request-pwid/l2vpn:pw-id");
-//                            int i = (int)((ConfUInt32)v).longValue();
-//                            externalAllocator.deallocate_pwid(i);
-//                            //wsess.delete(req.path + "/pw-id");
-//                        } catch (Exception e) {
-//                            LOGGER.error("",e);                      
-//                        }
+                        try {
+                            ConfValue v = wsess.getElem(req.path + "/integer");
+                            wsess.delete(req.path + "/integer");
+                        } catch (Exception e) {
+                            LOGGER.error("",e);
+                        }
 
                     }
 
@@ -239,44 +238,28 @@ public class ConfigCdbSub implements ApplicationComponent {
             @SuppressWarnings("unchecked")
             ArrayList<Request> reqs = (ArrayList<Request>) initstate;
 
-//            LOGGER.info("Going into DiffIterate..."); 
-
             try {
                 ConfPath p = new ConfPath(kp);
                 LOGGER.info("ITER " + op + " " + p);
                 // The kp array contains the keypath to the ConfObject in reverse order, for example:
-                // ncs:services/l2vpn:l2vpn{newservice}/l2vpn:request-pwid -> ["l2vpn:request-pwid", "{newservice}", "l2vpn:l2vpn", "ncs:services" ]
-                // Since we are subscribing to the changes on /ncs:services/l2vpn:l2vpn, the 3rd node from the end of the list always contains the service name (list key)
+                // ncs:services/ura:ura/ura:integer{my-range}/ura:request{my-request} -> ["{my-request}", "ura:request", "{my-range}", "ura:integer", "ura:ura", "ncs:services" ]
+                // Since we are subscribing to the changes on /ncs:services/ura:ura, the 3rd node from the end of the list always contains the service name (list key)
                 Request r = new Request();
                 r.path = p;
 				if (kp[1].toString().equals("ura:request")) {
-					if (op == DiffIterateOperFlag.MOP_CREATED) {
-						LOGGER.info("Got a request! Pool: " + kp[0]);
-						r.request_key = (ConfKey)kp[0];
-						r.pool_key = (ConfKey)kp[2];
-						r.op = Operation.ALLOCATE;
+					r.request_key = (ConfKey)kp[0];
+					if (kp[3].toString().equals("ura:integer")) {
 						r.t = Type.Integer;
+						r.pool_key = (ConfKey)kp[2];
+					}
+					if (op == DiffIterateOperFlag.MOP_CREATED) {
+						r.op = Operation.ALLOCATE;
+						reqs.add(r);
+					} else if (op == DiffIterateOperFlag.MOP_DELETED) {
+						r.op = Operation.DEALLOCATE;
 						reqs.add(r);
 					}
-					//r.key = (ConfKey)kp[kp.length-4];
 				}
-
-                /* INSERT THE Iter.iterate() code here */
-//				LOGGER.info("kp[0]:" + kp[0] + " kp[1]: " + kp[1] + " kp[2]: " + kp[2] + " kp[3]: " + kp[3]);
-
-                // The container l2vpn:request-pwid is created in the service mapping code using sharedCreate
-//                if ((op == DiffIterateOperFlag.MOP_CREATED) &&
-//                        kp[1].toString().equals("request")) {
-//                    r.op = Operation.CREATE; 
-//                    r.t = Type.PWID;
-//                    reqs.add(r);
-//                }
-
-                // The service instance (l2vpn list child node) is deleted
-//                else if ((op == DiffIterateOperFlag.MOP_DELETED)) {
-//                    r.op = Operation.DELETE;
-//                    reqs.add(r);
-//                }
             }
             catch (Exception e) {
                 LOGGER.error("", e);
