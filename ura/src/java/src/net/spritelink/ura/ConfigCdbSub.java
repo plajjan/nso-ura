@@ -109,7 +109,7 @@ public class ConfigCdbSub implements ApplicationComponent {
 
                 // Loop through CREATE or DELETE requests
                 for (Request req : reqs) {
-                    LOGGER.info("Requested URA action, op=" + req.op + " , type=" + req.t); 
+                    LOGGER.debug("Requested URA action, op=" + req.op + " , type=" + req.t);
 
 					// allocate integer
                     if ((req.op == Operation.ALLOCATE) &&
@@ -122,12 +122,15 @@ public class ConfigCdbSub implements ApplicationComponent {
 						long minVal = Long.parseLong(String.valueOf(maapi.getElem(th, "/ncs:services/ura:ura/integer" + req.pool_key + "/min-value")));
 						long maxVal = Long.parseLong(String.valueOf(maapi.getElem(th, "/ncs:services/ura:ura/integer" + req.pool_key + "/max-value")));
 
-						LOGGER.info("allocation-method: " + allocMethod.getOrdinalValue());
-						LOGGER.info("min-value: " + minVal);
-						LOGGER.info("max-value: " + maxVal);
+						LOGGER.debug("allocation-method: " + allocMethod.getOrdinalValue());
+						LOGGER.debug("min-value: " + minVal);
+						LOGGER.debug("max-value: " + maxVal);
 
 						List<Long> numbers = new ArrayList<Long>();
-						for (NavuContainer poolReq: ncsRoot.container("services").container("ura", "ura").list("integer").elem("my-range").list("request")) {
+						for (NavuContainer poolReq: ncsRoot.container("services")
+												.container("ura", "ura").list("integer").
+												elem(String.valueOf(req.pool_key).replaceAll("[{}]", "")).
+												list("request")) {
 							ConfValue rv = null;
 							try {
 								rv = maapi.getElem(th, "/ncs:services/ura:ura/integer" + req.pool_key + "/request{" + poolReq.leaf("name").valueAsString() + "}/integer");
@@ -240,7 +243,7 @@ public class ConfigCdbSub implements ApplicationComponent {
 
             try {
                 ConfPath p = new ConfPath(kp);
-                LOGGER.info("ITER " + op + " " + p);
+//                LOGGER.info("ITER " + op + " " + p);
                 // The kp array contains the keypath to the ConfObject in reverse order, for example:
                 // ncs:services/ura:ura/ura:integer{my-range}/ura:request{my-request} -> ["{my-request}", "ura:request", "{my-range}", "ura:integer", "ura:ura", "ncs:services" ]
                 // Since we are subscribing to the changes on /ncs:services/ura:ura, the 3rd node from the end of the list always contains the service name (list key)
