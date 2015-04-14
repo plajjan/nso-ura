@@ -1,0 +1,13 @@
+<ncs-package xmlns="http://tail-f.com/ns/ncs-packages">
+  <name>ura-test</name>
+  <package-version>1.0</package-version>
+  <description>Test application for the Universal Resource Allocator</description>
+  <ncs-min-version>3.0</ncs-min-version>
+
+  <component>
+    <name>uraTest</name>
+    <callback>
+      <java-class-name>net.spritelink.uratest.uraTest</java-class-name>
+    </callback>
+  </component>
+</ncs-package>
