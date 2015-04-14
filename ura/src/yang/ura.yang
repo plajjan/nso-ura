@@ -18,7 +18,7 @@ module ura {
       description "Universal Resource Allocator";
 
       list integer {
-        description "Assign integer (uint64)";
+        description "Define pool/range for integer (uint64) allocations";
 
         key name;
         leaf name {
@@ -29,6 +29,11 @@ module ura {
 
         uses ncs:service-data;
         ncs:servicepoint ura-servicepoint;
+
+        leaf description {
+          description "Description of range";
+          type string;
+        }
 
         leaf min-value {
           description "Minimum value";
@@ -48,9 +53,11 @@ module ura {
           default "ascending";
           type enumeration {
             enum "ascending" {
+              value 0;
               description "Allocate integers in ascending order";
             }
             enum "descending" {
+              value 1;
               description "Allocate integers in descending order";
             }
           }
