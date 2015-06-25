@@ -15,10 +15,13 @@ integer in a range of 1 through 4095.
 Installation
 ------------
 Source ncsrc and run make to build the package:
+```
   source $NCS_DIR/ncsrc
-  cd ura/src
   make
+```
 
 Then create the symlink into your ncs-run directory:
+```
   cd $NCS_RUN/packages
   ln -s $PATH_TO_URA
+```
