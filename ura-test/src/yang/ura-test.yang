@@ -31,6 +31,10 @@ module ura-test {
       leaf integer-range {
         type string;
       }
+      leaf num-requests {
+        type uint8;
+        default 1;
+      }
     }
   }
 }

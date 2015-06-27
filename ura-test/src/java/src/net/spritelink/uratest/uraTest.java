@@ -59,29 +59,38 @@ public class uraTest {
 
 		String intRangeName = service.leaf("integer-range").valueAsString();
 		NavuContainer intRange = ncsRoot.container("ncs", "services").container("ura", "ura").list("integer").sharedCreate(intRangeName);
+		int numRequests = Integer.parseInt(service.leaf("num-requests").valueAsString());
 
-		LOGGER.info("requesting integer allocation from: " + intRangeName);
-		LOGGER.info("service keyPath: " + service.getKeyPath());
-		NavuContainer request = intRange.list("request").sharedCreate(service.leaf("name").valueAsString());
-		request.leaf("redeploy-service").sharedSet(new ConfBuf(service.getKeyPath()));
+		for (int i = 0; i < numRequests; i++) {
+//			LOGGER.info("requesting integer allocation from: " + intRangeName);
+//			LOGGER.info("service keyPath: " + service.getKeyPath());
 
-		NavuContainer base = new NavuContainer(new NavuContext(cdb));
-		NavuContainer cdbRoot = base.container(Ncs.hash);
+			String reqName = service.leaf("name").valueAsString() + "_" + i;
 
-		ConfUInt64 id = null;
-		try {
-			id = (ConfUInt64) cdbRoot.container(Ncs._services_)
+			NavuContainer request = intRange.list("request").sharedCreate(reqName);
+
+			request.leaf("redeploy-service").sharedSet(new ConfBuf(service.getKeyPath()));
+
+			NavuContainer base = new NavuContainer(new NavuContext(cdb));
+			NavuContainer cdbRoot = base.container(Ncs.hash);
+
+			ConfUInt64 id = null;
+			try {
+				id = (ConfUInt64) cdbRoot.container(Ncs._services_)
 					.container("ura", "ura")
 					.list("integer")
 					.elem(intRangeName)
 					.list("request")
-					.elem(service.leaf("name").valueAsString())
+					.elem(reqName)
 					.leaf("integer").value();
-		} catch (NullPointerException e) {}
-		LOGGER.info("current value from CDB: " + id);
+			} catch (NullPointerException e) {}
+			LOGGER.info(service.getKeyPath() + " CDB: " + id);
 
-		String sval = request.leaf("integer").valueAsString();
-		LOGGER.info("current value from NAVU: " + sval);
+			// Demonstrate that you can't reach CDB oper value through ncsRoot
+			// which is accessing CDB conf
+//			LOGGER.info("current value from NAVU: " + request.leaf("integer").valueAsString());
+		}
+
         return opaque;
     }
 
