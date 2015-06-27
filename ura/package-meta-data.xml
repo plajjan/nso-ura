@@ -14,7 +14,7 @@
   <component>
 	  <name>Reactive FM CDB Config Subscriber</name>
 	  <application>
-		  <java-class-name>net.spritelink.ura.ConfigCdbSub</java-class-name>
+		  <java-class-name>net.spritelink.ura.NavuCdbSub</java-class-name>
 	  </application>
   </component>
 
