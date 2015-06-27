@@ -89,7 +89,7 @@ public class NavuCdbSub implements ApplicationComponent {
             sub.register(new NavuCdbConfigDiffIterate() {
                 private ArrayList<Request> reqs = new ArrayList<Request>();
                 private final Logger SUBLOG =
-                    Logger.getLogger(ConfigCdbSub.class);
+                    Logger.getLogger(NavuCdbSub.class);
 
                 public void iterate(NavuCdbSubscriptionConfigContext ctx) {
 					Request r = new Request();
