@@ -50,9 +50,9 @@ public class NavuCdbSub implements ApplicationComponent {
             qualifier="reactive-fm-m")
     private Maapi maapi;
 
-	private int th = -1;
-	private NavuContainer ncsRoot;
-	private NavuContainer operRoot;
+    private int th = -1;
+    private NavuContainer ncsRoot;
+    private NavuContainer operRoot;
 
     private NavuCdbConfigSubscriber sub;
 
@@ -66,12 +66,12 @@ public class NavuCdbSub implements ApplicationComponent {
         Operation op;
         Type t;
         ConfPath path;
-		ConfKey pool_key;
+        ConfKey pool_key;
         ConfKey request_key;
-		NavuContainer confPool;
-		NavuContainer confPoolReq;
-		NavuContainer operPool;
-		NavuContainer operPoolReq;
+        NavuContainer confPool;
+        NavuContainer confPoolReq;
+        NavuContainer operPool;
+        NavuContainer operPoolReq;
     }
 
     public void init() {
@@ -79,9 +79,9 @@ public class NavuCdbSub implements ApplicationComponent {
             maapi.startUserSession("admin", InetAddress.getLocalHost(),"system",
                     new String[] {"admin"},
                     MaapiUserSessionFlag.PROTO_TCP);
-			th = maapi.startTrans(Conf.DB_RUNNING, Conf.MODE_READ);
-			ncsRoot = new NavuContainer(new NavuContext(maapi, th)).container(Ncs.hash);
-			operRoot = new NavuContainer(new NavuContext(cdb)).container(Ncs.hash);
+            th = maapi.startTrans(Conf.DB_RUNNING, Conf.MODE_READ);
+            ncsRoot = new NavuContainer(new NavuContext(maapi, th)).container(Ncs.hash);
+            operRoot = new NavuContainer(new NavuContext(cdb)).container(Ncs.hash);
 
             sub = (NavuCdbConfigSubscriber) NavuCdbSubscribers.
                 configSubscriber("localhost", Conf.NCS_PORT);
@@ -92,7 +92,7 @@ public class NavuCdbSub implements ApplicationComponent {
                     Logger.getLogger(NavuCdbSub.class);
 
                 public void iterate(NavuCdbSubscriptionConfigContext ctx) {
-					Request r = new Request();
+                    Request r = new Request();
                     NavuNode parent = null;
                     NavuNode current = ctx.getNode();
 
@@ -100,7 +100,7 @@ public class NavuCdbSub implements ApplicationComponent {
                         case MOP_DELETED:
                             break;
                         case MOP_CREATED:
-							break;
+                            break;
                         case MOP_MODIFIED:
                             break;
                     }
@@ -119,149 +119,149 @@ public class NavuCdbSub implements ApplicationComponent {
         int counter  = 0;
         NavuCdbSubscriptionIterQueue queue = null;
 
-		sub.subscriberStart();
-		queue = sub.getIterationQueue();
-		LOGGER.info("subscribed: ready");
+        sub.subscriberStart();
+        queue = sub.getIterationQueue();
+        LOGGER.info("subscribed: ready");
 
-		try {
-			IterationEntry entry = null;
-			ArrayList<Request> reqs = new ArrayList<Request>();
+        try {
+            IterationEntry entry = null;
+            ArrayList<Request> reqs = new ArrayList<Request>();
 
-			while (!Thread.currentThread().interrupted() ) {
-				entry = queue.nextIteration();
-				ConfPath path = entry.keyPath();
-				DiffIterateOperFlag op = entry.getOperFlag();
+            while (!Thread.currentThread().interrupted() ) {
+                entry = queue.nextIteration();
+                ConfPath path = entry.keyPath();
+                DiffIterateOperFlag op = entry.getOperFlag();
 
-				Request r = new Request();
-				r.path = path;
+                Request r = new Request();
+                r.path = path;
 
-				ConfObject[] kp = path.getKP();
-				if (kp[1].toString().equals("ura:request")) {
-					r.request_key = (ConfKey)kp[0];
-					if (kp[3].toString().equals("ura:integer")) {
-						r.t = Type.Integer;
-						r.pool_key = (ConfKey)kp[2];
-					}
-					if (op == DiffIterateOperFlag.MOP_CREATED) {
-						r.op = Operation.ALLOCATE;
-						reqs.add(r);
-					} else if (op == DiffIterateOperFlag.MOP_DELETED) {
-						r.op = Operation.DEALLOCATE;
-						reqs.add(r);
-					}
-				}
+                ConfObject[] kp = path.getKP();
+                if (kp[1].toString().equals("ura:request")) {
+                    r.request_key = (ConfKey)kp[0];
+                    if (kp[3].toString().equals("ura:integer")) {
+                        r.t = Type.Integer;
+                        r.pool_key = (ConfKey)kp[2];
+                    }
+                    if (op == DiffIterateOperFlag.MOP_CREATED) {
+                        r.op = Operation.ALLOCATE;
+                        reqs.add(r);
+                    } else if (op == DiffIterateOperFlag.MOP_DELETED) {
+                        r.op = Operation.DEALLOCATE;
+                        reqs.add(r);
+                    }
+                }
 
-				// deal with queued requests
-				if (reqs.size() > 0) {
-					LOGGER.info("Number of requests: " + reqs.size());
-				}
+                // deal with queued requests
+                if (reqs.size() > 0) {
+                    LOGGER.info("Number of requests: " + reqs.size());
+                }
                 for (Request req : reqs) {
                     LOGGER.info("Requested URA action " + req.request_key +
-						   	", op=" + req.op + " , type=" + req.t +
-							" , from=" + req.pool_key);
+                            ", op=" + req.op + " , type=" + req.t +
+                            " , from=" + req.pool_key);
 
-					req.confPool = ncsRoot.container("ncs", "services").
-						container("ura", "ura").
-						list("ura", "integer").
-						elem(req.pool_key);
-					req.confPoolReq = req.confPool.list("ura", "request").elem(req.request_key);
+                    req.confPool = ncsRoot.container("ncs", "services").
+                        container("ura", "ura").
+                        list("ura", "integer").
+                        elem(req.pool_key);
+                    req.confPoolReq = req.confPool.list("ura", "request").elem(req.request_key);
 
-					req.operPool = operRoot.container("ncs", "services").
-						container("ura", "ura").
-						list("ura", "integer").
-						elem(req.pool_key);
-					req.operPoolReq = req.operPool.list("ura", "request").elem(req.request_key);
+                    req.operPool = operRoot.container("ncs", "services").
+                        container("ura", "ura").
+                        list("ura", "integer").
+                        elem(req.pool_key);
+                    req.operPoolReq = req.operPool.list("ura", "request").elem(req.request_key);
 
                     if ((req.op == Operation.ALLOCATE) && (req.t == Type.Integer)) {
-						try {
-							allocateInteger(req);
-						} catch (Exception e) {
-							LOGGER.info("Something went to shitez: ", e);
-						}
-					}
-					if ((req.op == Operation.DEALLOCATE) && (req.t == Type.Integer)) {
-						try {
-							deallocateInteger(req);
-						} catch (Exception e) {
-							LOGGER.info("Something went to shitez: ", e);
-						}
-					}
-				}
-				reqs.clear();
-			}
-		} catch (ConfException e) {
-			LOGGER.info("shit");
-		} catch (InterruptedException e) {
-			LOGGER.info("Got Interrupted!");
-			Thread.currentThread().interrupt();
-		} finally {
-			List<IterationEntry> remaining = queue.drainRemaining () ;
-			for (IterationEntry  entry : remaining) {
-				LOGGER.info("(" + (counter++) + ") " + entry.getOperFlag() +
-				  " " + entry.keyPath() + " " + entry.getLastResultFlag() );
-			}
-		}
+                        try {
+                            allocateInteger(req);
+                        } catch (Exception e) {
+                            LOGGER.info("Something went to shitez: ", e);
+                        }
+                    }
+                    if ((req.op == Operation.DEALLOCATE) && (req.t == Type.Integer)) {
+                        try {
+                            deallocateInteger(req);
+                        } catch (Exception e) {
+                            LOGGER.info("Something went to shitez: ", e);
+                        }
+                    }
+                }
+                reqs.clear();
+            }
+        } catch (ConfException e) {
+            LOGGER.info("shit");
+        } catch (InterruptedException e) {
+            LOGGER.info("Got Interrupted!");
+            Thread.currentThread().interrupt();
+        } finally {
+            List<IterationEntry> remaining = queue.drainRemaining () ;
+            for (IterationEntry  entry : remaining) {
+                LOGGER.info("(" + (counter++) + ") " + entry.getOperFlag() +
+                        " " + entry.keyPath() + " " + entry.getLastResultFlag() );
+            }
+        }
     }
 
-	/*
-	 * Allocate an integer!
-	 */
-	public void allocateInteger (Request req) throws NavuException {
-		// get pool settings
-		ConfEnumeration allocMethod = (ConfEnumeration)req.confPool.leaf("allocation-method").value();
-		long minVal = Long.parseLong(req.confPool.leaf("min-value").valueAsString());
-		long maxVal = Long.parseLong(req.confPool.leaf("max-value").valueAsString());
-		LOGGER.info("Pool: " + req.confPool.leaf("name").valueAsString() + " min: " + minVal + " max: " + maxVal + " allocMethod: " + allocMethod.getOrdinalValue());
+    /*
+     * Allocate an integer!
+     */
+    public void allocateInteger (Request req) throws NavuException {
+        // get pool settings
+        ConfEnumeration allocMethod = (ConfEnumeration)req.confPool.leaf("allocation-method").value();
+        long minVal = Long.parseLong(req.confPool.leaf("min-value").valueAsString());
+        long maxVal = Long.parseLong(req.confPool.leaf("max-value").valueAsString());
+        LOGGER.info("Pool: " + req.confPool.leaf("name").valueAsString() + " min: " + minVal + " max: " + maxVal + " allocMethod: " + allocMethod.getOrdinalValue());
 
-		List<Long> numbers = new ArrayList<Long>();
-		// fetch all the current values from CDB
-		// for large number of existing values, this will be rather slow and memory efficient
-		// for the "max" method we could perhaps do a xpath max() to fetch the max value instead
-		for (NavuContainer oreq: req.operPool.list("request")) {
-			try {
-				numbers.add(Long.parseLong(oreq.leaf("integer").valueAsString()));
-			} catch (Exception e) {
-			}
-		}
+        List<Long> numbers = new ArrayList<Long>();
+        // fetch all the current values from CDB
+        // for large number of existing values, this will be rather slow and memory efficient
+        // for the "max" method we could perhaps do a xpath max() to fetch the max value instead
+        for (NavuContainer oreq: req.operPool.list("request")) {
+            try {
+                numbers.add(Long.parseLong(oreq.leaf("integer").valueAsString()));
+            } catch (Exception e) {
+            }
+        }
 
-		long newVal = minVal;
-		if (allocMethod.getOrdinalValue() == 0) {
-			// this just takes the highest number and adds by one
-			// it will fail 
-			if (numbers.size() > 0) {
-				newVal = Collections.max(numbers) + 1;
-			}
-		} else if (allocMethod.getOrdinalValue() == 1) {
-			Collections.sort(numbers);
+        long newVal = minVal;
+        if (allocMethod.getOrdinalValue() == 0) {
+            // this just takes the highest number and adds by one
+            // it will fail 
+            if (numbers.size() > 0) {
+                newVal = Collections.max(numbers) + 1;
+            }
+        } else if (allocMethod.getOrdinalValue() == 1) {
+            Collections.sort(numbers);
 
-			// find next free number
-			newVal = numbers.size();
-			for(int i=0; i < numbers.size(); i++) {
-				if(numbers.get(i) != (long)i) {
-					newVal = i;
-					break;
-				}
-			}
-		}
+            // find next free number
+            newVal = numbers.size();
+            for(int i=0; i < numbers.size(); i++) {
+                if(numbers.get(i) != (long)i) {
+                    newVal = i;
+                    break;
+                }
+            }
+        }
 
-		// Write the result
-		ConfUInt64 integerValue = new ConfUInt64(newVal);
-		LOGGER.info("SET: " + req.path + "/integer -> " + integerValue);
-		req.operPoolReq.leaf("integer").set(integerValue);
+        // Write the result
+        ConfUInt64 integerValue = new ConfUInt64(newVal);
+        LOGGER.info("SET: " + req.path + "/integer -> " + integerValue);
+        req.operPoolReq.leaf("integer").set(integerValue);
 
-		ConfValue redeployPath = req.confPoolReq.leaf("redeploy-service").value();
-		if (redeployPath != null) {
-			redeploy(redeployPath + "/re-deploy");
-		}
+        ConfValue redeployPath = req.confPoolReq.leaf("redeploy-service").value();
+        if (redeployPath != null) {
+            redeploy(redeployPath + "/re-deploy");
+        }
 
-	}
+    }
 
-	/*
-	 * Deallocate an integer!
-	 */
-	public void deallocateInteger (Request req) throws NavuException {
-		req.operPoolReq.leaf("integer").delete();
-	}
+    /*
+     * Deallocate an integer!
+     */
+    public void deallocateInteger (Request req) throws NavuException {
+        req.operPoolReq.leaf("integer").delete();
+    }
 
 
     public void finish() {
