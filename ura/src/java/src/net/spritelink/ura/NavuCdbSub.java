@@ -173,7 +173,18 @@ public class NavuCdbSub implements ApplicationComponent {
 					req.operPoolReq = req.operPool.list("ura", "request").elem(req.request_key);
 
                     if ((req.op == Operation.ALLOCATE) && (req.t == Type.Integer)) {
-						allocateInteger(req);
+						try {
+							allocateInteger(req);
+						} catch (Exception e) {
+							LOGGER.info("Something went to shitez: ", e);
+						}
+					}
+					if ((req.op == Operation.DEALLOCATE) && (req.t == Type.Integer)) {
+						try {
+							deallocateInteger(req);
+						} catch (Exception e) {
+							LOGGER.info("Something went to shitez: ", e);
+						}
 					}
 				}
 				reqs.clear();
